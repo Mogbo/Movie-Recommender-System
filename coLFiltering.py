@@ -50,7 +50,7 @@ if __name__ == '__main__':
     sc = SparkContext('local[40]', 'User Based Filtering')
 
     # File Paths
-    datasetsPath = os.path.join('..', 'the-movies-dataset')
+    datasetsPath = os.path.join('.', 'the-movies-dataset')
     ratingsPath = os.path.join(datasetsPath, 'ratings.csv')
 
 
