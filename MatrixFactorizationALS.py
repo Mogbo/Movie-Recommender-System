@@ -20,12 +20,12 @@ if __name__ == '__main__':
     # File Paths
     dataFolder = os.path.join('..', 'the-movies-dataset/small-data/')
 
-    train = sc.textFile(dataFolder+'train').map(eval)
-    val = sc.textFile(dataFolder+'test').map(eval)
+    train = sc.textFile(dataFolder+'train').map(eval).cache()
+    val = sc.textFile(dataFolder+'test').map(eval).cache()
 
-    numIterationsTup = (3,5,7,10,13)
+    numIterationsTup = (7,10,13)
     rankTup = tuple(range(2,21))
-    lamTup = (0.01, 0.03, 0.1, 0.3, 1., 3, 10, 30, 100, 300, 1000)
+    lamTup = (0.01, 0.03, 0.1, 0.3, 1., 3., 10.)
 
     trainMSEList = []
     valMSEList = []
