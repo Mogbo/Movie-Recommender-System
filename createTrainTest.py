@@ -52,10 +52,22 @@ if __name__ == '__main__':
 
     smallData = desiredMovieRDD.takeSample(False, 450000, seed=4)
 
-    with open(os.path.join(dataFolder, 'small-data/train'), 'w') as f:
-        for item in smallData[:400000]:
+    with open(os.path.join(dataFolder, 'folds/fold0'), 'w') as f:
+        for item in smallData[:90000]:
             f.write(str(item)+"\n" )
+            
+    with open(os.path.join(dataFolder, 'folds/fold1'), 'w') as f:
+        for item in smallData[90000:180000]:
+            f.write(str(item)+"\n" ) 
+            
+    with open(os.path.join(dataFolder, 'folds/fold2'), 'w') as f:
+        for item in smallData[180000:270000]:
+            f.write(str(item)+"\n" )              
 
-    with open(os.path.join(dataFolder, 'small-data/test'), 'w') as f:
-        for item in smallData[400000:]:
+    with open(os.path.join(dataFolder, 'folds/fold3'), 'w') as f:
+        for item in smallData[270000:360000]:
+            f.write(str(item)+"\n" )                
+
+    with open(os.path.join(dataFolder, 'folds/fold4'), 'w') as f:
+        for item in smallData[360000:]:
             f.write(str(item)+"\n" )

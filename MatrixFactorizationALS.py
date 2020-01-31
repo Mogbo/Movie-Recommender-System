@@ -3,29 +3,45 @@ from pyspark import SparkContext
 import pandas as pd
 import sys,argparse
 from pyspark.mllib.recommendation import ALS, MatrixFactorizationModel, Rating
-
+from time import time
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description = 'ALS Matrix Factorization.',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--saveTo' ,help = 'File where results are to be stored', default='../results/defaultResultsFile.csv')
+    parser.add_argument('--kf', help='which fold', default=0, type=int)
 
     args = parser.parse_args()
 
-    N = 40 # Number of partitions
+    N = 28 # Number of partitions
 
 
     sc = SparkContext('local[*]', 'User Based Filtering')
 
     # File Paths
-    dataFolder = os.path.join('..', 'the-movies-dataset/small-data/')
+    dataFolder = os.path.join('..', 'the-movies-dataset/folds/')
 
-    train = sc.textFile(dataFolder+'train').map(eval).cache()
-    val = sc.textFile(dataFolder+'test').map(eval).cache()
+    fold0 = sc.textFile(dataFolder+'fold0').map(eval)
+    fold1 = sc.textFile(dataFolder + 'fold1').map(eval)
+    fold2 = sc.textFile(dataFolder + 'fold2').map(eval)
+    fold3 = sc.textFile(dataFolder + 'fold3').map(eval)
+    fold4 = sc.textFile(dataFolder + 'fold4').map(eval)
 
-    numIterationsTup = (7,10,13)
-    rankTup = tuple(range(2,21))
-    lamTup = (0.01, 0.03, 0.1, 0.3, 1., 3., 10.)
+    folds = [fold0, fold1, fold2, fold3, fold4]
+
+    train_folds = [folds[j] for j in range(len(folds)) if j is not args.kf]
+    train = train_folds[0]
+
+    for fold in train_folds[1:]:
+        train = train.union(fold)
+    train.cache()
+
+    val = folds[args.kf].cache()
+
+    numIterationsTup = (20,)
+    rankTup = tuple(range(2,9))
+    rankTup = (3,)
+    lamTup = (3.0,)
 
     trainMSEList = []
     valMSEList = []
@@ -34,6 +50,7 @@ if __name__ == '__main__':
         for rank in rankTup:
             for lam in lamTup:
 
+                start = time()
                 # Build the recommendation model using Alternating Least Squares
                 blocks = -1
                 model = ALS.train(train, rank, iterations=numIterations, lambda_=lam, nonnegative=False, blocks=blocks, seed=5)
@@ -52,11 +69,14 @@ if __name__ == '__main__':
                 valMSE = valRatesAndPreds.map(lambda r: (r[1][0] - r[1][1])**2).mean()
                 valMSEList.append(valMSE)
 
+                print("%.4f" % (time()-start))
                 print("numIterations = %d. Rank = %d. lam = %.4f. Train MSE = %.4f. Val MSE = %.4f" %(numIterations, rank, lam, trainMSE, valMSE))
 
+    '''
     # Analyze and Save
     df = pd.DataFrame({'numIterations': numIterationsTup, 'rank': rankTup, 'lambda_': lamTup, 'trainMSE':trainMSEList, 'valMSE':valMSEList})
     df.to_csv(args.saveTo)
+    '''
 
 
 
